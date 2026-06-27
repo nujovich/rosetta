@@ -89,11 +89,27 @@ cita de cada fuente original.
 
 ## Estado
 
-- ✅ Estándar v0.1 + esquema canónico (SQL) + tipos
-- ✅ Motor genérico, registry pluggable, pipeline con validación de conformidad
-- ✅ Adaptador RNFJA (⚠️ pendiente verificar códigos vs. Libro de Códigos real)
-- ✅ Scaffolding open-source: CI, contribución, licencias, CoC
+| Fuente | Tipo | Método | Estado | Tests |
+|--------|------|--------|--------|-------|
+| `rnfja` — Registro Nacional de Femicidios de la Justicia Argentina (OM-CSJN) | estatal_judicial | registro_judicial | ✅ Completo (⚠️ verificar Libro de Códigos) | 7 |
+| `aqsnv` — Ahora Que Sí Nos Ven | sociedad_civil | monitoreo_medios | ✅ Completo | 10 |
+| `lucia-perez` — Observatorio Lucía Pérez | sociedad_civil | monitoreo_medios | ✅ Completo | 10 |
+
 - ⬜ Cerrar mapeo real RNFJA contra el Libro de Códigos
-- ⬜ Adaptador AQSNV (monitoreo de medios)
 - ⬜ Etapa de carga (load) a Postgres/Supabase
 - ⬜ Explorador público
+
+### Fuentes en radar (issues abiertos)
+
+| # | Fuente | Tipo |
+|---|--------|------|
+| [#2](https://github.com/nujovich/rosetta/issues/2) | SNIC — Sistema Nacional de Información Criminal (datos.gob.ar) | estatal_ejecutivo |
+| [#3](https://github.com/nujovich/rosetta/issues/3) | Observatorio de Seguimiento de Causas (CSJN) | estatal_judicial |
+
+### Fuentes conocidas sin adaptador aún
+
+| Fuente | Tipo | Nota |
+|--------|------|------|
+| OFDPN — Defensoría del Pueblo de la Nación | estatal_ejecutivo | Informes PDF, datos agregados |
+| La Casa del Encuentro — Obs. "Adriana Marisel Zambrano" | sociedad_civil | Informes mensuales, datos agregados |
+| MuMaLá — Mujeres de la Matria Latinoamericana | sociedad_civil | Informes periódicos, datos agregados |

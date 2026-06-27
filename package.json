@@ -10,6 +10,7 @@
   "scripts": {
     "fixture": "tsx scripts/make-fixture.ts",
     "fixture:lucia-perez": "tsx scripts/make-fixture-lucia-perez.ts",
+    "fixture:aqsnv": "tsx scripts/make-fixture-aqsnv.ts",
     "dev": "tsx src/cli.ts",
     "smoke": "tsx scripts/make-fixture.ts && tsx src/cli.ts run rnfja --dir ./fixtures/rnfja-2024 --anio 2024 --out ./out/rnfja-2024.json",
     "test": "tsx --test test/*.test.ts",

@@ -1,30 +1,26 @@
 // sources/aqsnv/source.ts
-// STUB — Ahora Que Sí Nos Ven (monitoreo de medios, una sola tabla).
-// Muestra el patrón de "agregar una fuente": implementás meta + extract +
-// normalize y registrás. NADA del core cambia. El mapping y la normalización
-// reales quedan pendientes (próximo ladrillo).
+// Envuelve el adaptador de Ahora Que Sí Nos Ven en la interfaz SourceModule
+// y lo registra. Fuente de tabla única (monitoreo de medios), lectura
+// CSV/XLSX. Equipo interdisciplinario con mirada legal (abogadas en el
+// equipo), por lo que los campos de respuesta_estatal tienen buena cobertura.
 
 import { registerSource, type SourceModule, type SourceInput } from '../../core/registry.js';
+import { readSheet, findFile } from '../../core/io.js';
 import type { Publicacion } from '../../schema.js';
+import type { RawRow } from '../../core/harmonize.js';
+import { adaptAqsnv } from './adapter.js';
+import { AQSNV_FUENTE, FILE_PATTERNS } from './mapping.js';
 
-const PENDIENTE = true;
+interface AqsnvRaw {
+  rows: RawRow[];
+}
 
-const aqsnv: SourceModule<unknown> = {
-  meta: {
-    id: 'aqsnv',
-    nombre: 'Ahora Que Sí Nos Ven — Observatorio de las violencias de género',
-    tipo: 'sociedad_civil',
-    metodo: 'monitoreo_medios',
-    definicion_base:
-      'Femicidios, travesticidios/transfemicidios e instigación al suicidio ' +
-      'relevados por monitoreo diario de medios.',
-    alcance_categorias: ['femicidio', 'travesticidio_transfemicidio', 'instigacion_al_suicidio'],
-    alineado_unodc: false,
-  },
+const aqsnv: SourceModule<AqsnvRaw> = {
+  meta: AQSNV_FUENTE,
 
   publicacionPorDefecto(input: SourceInput): Publicacion {
     return {
-      fuente_id: 'aqsnv',
+      fuente_id: AQSNV_FUENTE.id,
       periodo_inicio: `${input.anio}-01-01`,
       periodo_fin: `${input.anio}-12-31`,
       fecha_publicacion: `${input.anio}-12-31`,
@@ -33,15 +29,24 @@ const aqsnv: SourceModule<unknown> = {
     };
   },
 
-  extract(): unknown {
-    if (PENDIENTE) throw new Error('AQSNV: adaptador pendiente (stub). Próximo ladrillo.');
-    return null;
+  extract(input: SourceInput): AqsnvRaw {
+    const f = findFile(input.dir, FILE_PATTERNS.casos);
+    if (!f) {
+      throw new Error(
+        `AQSNV: no se encontró archivo de registro en ${input.dir}. ` +
+          `Buscado con patrón: ${FILE_PATTERNS.casos}`,
+      );
+    }
+    const rows = readSheet(f);
+    if (rows.length === 0) {
+      throw new Error(`AQSNV: archivo vacío: ${f}`);
+    }
+    return { rows };
   },
 
-  normalize() {
-    return { casos: [], warnings: [], resumen_warnings: [], stats: {} };
+  normalize(raw: AqsnvRaw, publicacion: Publicacion) {
+    return adaptAqsnv({ rows: raw.rows, publicacion });
   },
 };
 
 registerSource(aqsnv);
-export default aqsnv;
