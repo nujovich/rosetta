@@ -1,0 +1,4 @@
+# ignorar todo menos la documentación
+*
+!.gitignore
+!README.md
