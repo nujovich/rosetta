@@ -1,9 +1,9 @@
 {
-  "name": "femicidios-data",
+  "name": "@nujovich/rosetta",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Estándar abierto + harmonizador de datos de femicidios (Argentina). Motor genérico + adaptadores por fuente.",
+  "description": "Rosetta: estándar abierto + harmonizador de datos de femicidios (Argentina). Motor genérico + adaptadores por fuente.",
   "engines": {
     "node": ">=20"
   },

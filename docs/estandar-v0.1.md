@@ -1,4 +1,4 @@
-# Estándar Abierto de Datos de Femicidios — Argentina
+# Estándar Rosetta — Argentina
 
 **Versión 0.1 (semilla)** · Documento de trabajo · Licencia sugerida: CC BY 4.0 (texto) + datos bajo licencia abierta (ODbL o CC0 según se acuerde)
 

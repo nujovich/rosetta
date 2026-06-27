@@ -1,10 +1,10 @@
-# femicidios-data
+# Rosetta
 
 Estándar abierto + harmonizador de datos de femicidios para Argentina.
 Toma lo que cada fuente ya publica y lo vuelve **comparable** sin inventar un
 total propio. Motor genérico + un adaptador por fuente.
 
-> El nombre es provisorio. El estándar vive en `docs/estandar-v0.1.md`.
+> El nombre del proyecto es Rosetta. El estándar vive en `docs/estandar-v0.1.md`.
 
 ## Idea central
 
