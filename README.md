@@ -27,7 +27,11 @@ npm run typecheck
 Con datos reales:
 
 ```bash
+# fuentes per-case -> caso_reportado
 npm run dev -- run rnfja --dir ./data/rnfja/2024 --anio 2024 --out ./out/rnfja-2024.json
+
+# fuentes de referencia (agregadas) -> serie agregada para validación cruzada
+npm run dev -- run-ref snic --dir ./data/snic --out ./out/snic.json
 ```
 
 ## Arquitectura
@@ -38,7 +42,8 @@ db/migrations/               # esquema canónico SQL (Postgres/Supabase)
 src/
   schema.ts                  # tipos canónicos (espejo del SQL)
   core/
-    registry.ts              # ← registry de fuentes (pluggable)
+    registry.ts              # ← registry de fuentes per-case (pluggable)
+    reference.ts             # ← registry de fuentes de REFERENCIA (agregadas)
     pipeline.ts              # ← extract → normalize → validate
     validate.ts              # ← conformidad: todo adaptador pasa por acá
     harmonize.ts             # motor de mapeo (diccionarios, nulos, warnings)
@@ -46,9 +51,12 @@ src/
   sources/
     index.ts                 # registra todas las fuentes (1 línea por fuente)
     rnfja/                    # adaptador RNFJA (completo)
-    aqsnv/                    # STUB: muestra cómo se agrega una fuente
+    rnfja-sentencias/        # variante: desenlace judicial (respuesta_estatal)
+    aqsnv/                    # monitoreo de medios (completo)
+    lucia-perez/             # monitoreo de medios (completo)
+    snic/                    # fuente de REFERENCIA (tasas agregadas, no per-case)
   reconcile/cluster.ts       # etapa caso_unificado (v0 heurística)
-  cli.ts                     # list | run (no se toca al agregar fuentes)
+  cli.ts                     # list | run | run-ref (no se toca al agregar fuentes)
 ```
 
 ## Agregar una fuente (el patrón)
@@ -60,8 +68,18 @@ src/
 
 **Nada del `core`, el `pipeline`, el `validate` ni el `cli` cambia.** Por eso el
 validador de conformidad importa: garantiza que el adaptador de cualquiera
-produzca datos al mismo estándar. Próximo: `aqsnv` (monitoreo de medios), donde
-aparece la fricción real de comparabilidad entre definiciones distintas.
+produzca datos al mismo estándar.
+
+### Dos clases de fuente: per-case y de referencia
+
+La mayoría de las fuentes son **per-case**: producen un `caso_reportado` por
+víctima. Pero algunas —como el **SNIC**— sólo publican **agregados** (tasas por
+provincia/año), no hechos individuales. Forzarlas al modelo `caso_reportado`
+inventaría casos, justo lo que el estándar prohíbe. Por eso producen
+`SerieAgregada` y viven en un registry paralelo (`core/reference.ts`,
+`registerReferenceSource`, CLI `run-ref`). No alimentan el conteo per-case ni la
+reconciliación: su valor es la **validación cruzada** (contrastar la tasa oficial
+de una jurisdicción contra lo que captan las fuentes per-case).
 
 ## ⚠️ RNFJA: verificar el Libro de Códigos
 
@@ -89,27 +107,29 @@ cita de cada fuente original.
 
 ## Estado
 
-| Fuente | Tipo | Método | Estado | Tests |
-|--------|------|--------|--------|-------|
-| `rnfja` — Registro Nacional de Femicidios de la Justicia Argentina (OM-CSJN) | estatal_judicial | registro_judicial | ✅ Completo (⚠️ verificar Libro de Códigos) | 7 |
-| `aqsnv` — Ahora Que Sí Nos Ven | sociedad_civil | monitoreo_medios | ✅ Completo | 10 |
-| `lucia-perez` — Observatorio Lucía Pérez | sociedad_civil | monitoreo_medios | ✅ Completo | 10 |
+**Fuentes per-case** (producen `caso_reportado`):
+
+| Fuente                                                                        | Tipo             | Método            | Estado                                      | Tests |
+| ----------------------------------------------------------------------------- | ---------------- | ----------------- | ------------------------------------------- | ----- |
+| `rnfja` — Registro Nacional de Femicidios de la Justicia Argentina (OM-CSJN)  | estatal_judicial | registro_judicial | ✅ Completo (⚠️ verificar Libro de Códigos) | 7     |
+| `rnfja-sentencias` — Obs. de Seguimiento de Causas y Sentencias (OM-CSJN, #3) | estatal_judicial | registro_judicial | ✅ Completo (⚠️ verificar Libro de Códigos) | 10    |
+| `aqsnv` — Ahora Que Sí Nos Ven                                                | sociedad_civil   | monitoreo_medios  | ✅ Completo                                 | 10    |
+| `lucia-perez` — Observatorio Lucía Pérez                                      | sociedad_civil   | monitoreo_medios  | ✅ Completo                                 | 10    |
+
+**Fuentes de referencia** (agregadas, validación cruzada — NO per-case, ver `run-ref`):
+
+| Fuente                                                               | Tipo              | Método                  | Estado      | Tests |
+| -------------------------------------------------------------------- | ----------------- | ----------------------- | ----------- | ----- |
+| `snic` — Sistema Nacional de Información Criminal (datos.gob.ar, #2) | estatal_ejecutivo | registro_administrativo | ✅ Completo | 7     |
 
 - ⬜ Cerrar mapeo real RNFJA contra el Libro de Códigos
-- ⬜ Etapa de carga (load) a Postgres/Supabase
+- ⬜ Etapa de carga (load) a Postgres/Supabase (incluye `serie_agregada`)
 - ⬜ Explorador público
-
-### Fuentes en radar (issues abiertos)
-
-| # | Fuente | Tipo |
-|---|--------|------|
-| [#2](https://github.com/nujovich/rosetta/issues/2) | SNIC — Sistema Nacional de Información Criminal (datos.gob.ar) | estatal_ejecutivo |
-| [#3](https://github.com/nujovich/rosetta/issues/3) | Observatorio de Seguimiento de Causas (CSJN) | estatal_judicial |
 
 ### Fuentes conocidas sin adaptador aún
 
-| Fuente | Tipo | Nota |
-|--------|------|------|
-| OFDPN — Defensoría del Pueblo de la Nación | estatal_ejecutivo | Informes PDF, datos agregados |
-| La Casa del Encuentro — Obs. "Adriana Marisel Zambrano" | sociedad_civil | Informes mensuales, datos agregados |
-| MuMaLá — Mujeres de la Matria Latinoamericana | sociedad_civil | Informes periódicos, datos agregados |
+| Fuente                                                  | Tipo              | Nota                                 |
+| ------------------------------------------------------- | ----------------- | ------------------------------------ |
+| OFDPN — Defensoría del Pueblo de la Nación              | estatal_ejecutivo | Informes PDF, datos agregados        |
+| La Casa del Encuentro — Obs. "Adriana Marisel Zambrano" | sociedad_civil    | Informes mensuales, datos agregados  |
+| MuMaLá — Mujeres de la Matria Latinoamericana           | sociedad_civil    | Informes periódicos, datos agregados |

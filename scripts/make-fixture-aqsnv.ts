@@ -69,7 +69,7 @@ write('registro_aqsnv_2024.xlsx', [
     provincia: 'Ciudad de Buenos Aires',
     localidad: 'Palermo',
     lugar: 'Espacio público',
-    medio: 'Golpiza',  // fuera de vocabulario canónico → warning
+    medio: 'Golpiza', // fuera de vocabulario canónico → warning
     violencia_sexual: 'Sí',
     fiscal: 'UFEM CABA',
     caratula: 'Homicidio agravado por odio a la identidad de género',

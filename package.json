@@ -1,6 +1,6 @@
 {
   "name": "@nujovich/rosetta",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Rosetta: estándar abierto + harmonizador de datos de femicidios (Argentina). Motor genérico + adaptadores por fuente.",
@@ -8,11 +8,15 @@
     "node": ">=20"
   },
   "scripts": {
-    "fixture": "tsx scripts/make-fixture.ts",
+    "fixture": "npm run fixture:rnfja && npm run fixture:rnfja-sentencias && npm run fixture:aqsnv && npm run fixture:lucia-perez && npm run fixture:snic",
+    "fixture:rnfja": "tsx scripts/make-fixture.ts",
+    "fixture:rnfja-sentencias": "tsx scripts/make-fixture-rnfja-sentencias.ts",
     "fixture:lucia-perez": "tsx scripts/make-fixture-lucia-perez.ts",
     "fixture:aqsnv": "tsx scripts/make-fixture-aqsnv.ts",
+    "fixture:snic": "tsx scripts/make-fixture-snic.ts",
     "dev": "tsx src/cli.ts",
-    "smoke": "tsx scripts/make-fixture.ts && tsx src/cli.ts run rnfja --dir ./fixtures/rnfja-2024 --anio 2024 --out ./out/rnfja-2024.json",
+    "smoke": "npm run fixture:rnfja && tsx src/cli.ts run rnfja --dir ./fixtures/rnfja-2024 --anio 2024 --out ./out/rnfja-2024.json",
+    "pretest": "npm run fixture",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",

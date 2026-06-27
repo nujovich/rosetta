@@ -63,8 +63,7 @@ export function adaptAqsnv(input: AqsnvInput): AqsnvOutput {
     const idExterno = toStr(pick(row, COLS.caso.id_externo)) ?? `AQSNV-${idx + 1}`;
 
     const clasificacionFuente =
-      toStr(pick(row, COLS.caso.clasificacion_fuente)) ??
-      'femicidio (Ahora Que Sí Nos Ven)';
+      toStr(pick(row, COLS.caso.clasificacion_fuente)) ?? 'femicidio (Ahora Que Sí Nos Ven)';
 
     const vinculo = mapValue(
       pick(row, COLS.sujeto.vinculo),
@@ -80,9 +79,7 @@ export function adaptAqsnv(input: AqsnvInput): AqsnvOutput {
         vinculo,
         agente_estatal: toBool(pick(row, COLS.sujeto.agente_estatal)),
         denuncias_previas: toBool(pick(row, COLS.victima.denuncias_previas)),
-        medida_proteccion_vigente: toBool(
-          pick(row, COLS.sujeto.medida_proteccion),
-        ),
+        medida_proteccion_vigente: toBool(pick(row, COLS.sujeto.medida_proteccion)),
         suicidio_posterior: null,
         notas: null,
       },
@@ -98,11 +95,7 @@ export function adaptAqsnv(input: AqsnvInput): AqsnvOutput {
       ctx,
     );
     const huboCondena =
-      estadoCausa === 'sentencia_firme'
-        ? true
-        : estadoCausa === 'sentencia_no_firme'
-          ? true
-          : null;
+      estadoCausa === 'sentencia_firme' ? true : estadoCausa === 'sentencia_no_firme' ? true : null;
 
     const completo: CasoReportadoCompleto = {
       caso_reportado: {
@@ -140,20 +133,8 @@ export function adaptAqsnv(input: AqsnvInput): AqsnvOutput {
       },
       sujetos_activos: sujetos,
       hecho: {
-        lugar: mapValue(
-          pick(row, COLS.caso.lugar),
-          LUGAR_DICT,
-          'hecho.lugar',
-          warn,
-          ctx,
-        ),
-        medio: mapValue(
-          pick(row, COLS.caso.medio),
-          MEDIO_DICT,
-          'hecho.medio',
-          warn,
-          ctx,
-        ),
+        lugar: mapValue(pick(row, COLS.caso.lugar), LUGAR_DICT, 'hecho.lugar', warn, ctx),
+        medio: mapValue(pick(row, COLS.caso.medio), MEDIO_DICT, 'hecho.medio', warn, ctx),
         violencia_sexual: toBool(pick(row, COLS.caso.violencia_sexual)),
         ensanamiento: null,
         ocultamiento_cuerpo: null,

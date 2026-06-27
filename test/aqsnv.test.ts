@@ -17,9 +17,7 @@ test('produce 1 caso_reportado por víctima', () => {
 });
 
 test('captura víctima trans/travesti (subregistro clave)', () => {
-  const trans = res.casos.filter(
-    (c) => c.victima.identidad === 'mujer_trans_travesti',
-  );
+  const trans = res.casos.filter((c) => c.victima.identidad === 'mujer_trans_travesti');
   assert.equal(trans.length, 1);
 });
 
@@ -27,9 +25,7 @@ test('clasificacion_fuente incluye Travesticidio e Instigacion al suicidio', () 
   const tv = res.casos.find((c) =>
     c.caso_reportado.clasificacion_fuente.toLowerCase().includes('travesticidio'),
   );
-  const is = res.casos.find((c) =>
-    c.caso_reportado.clasificacion_fuente.includes('Instigación'),
-  );
+  const is = res.casos.find((c) => c.caso_reportado.clasificacion_fuente.includes('Instigación'));
   assert.ok(tv, 'debe existir travesticidio');
   assert.ok(is, 'debe existir instigación al suicidio');
 });
@@ -47,9 +43,7 @@ test('registra hijos a cargo (huérfanos por femicidio)', () => {
 });
 
 test('captura denuncias previas cuando existen', () => {
-  const conDenuncia = res.casos.filter(
-    (c) => c.sujetos_activos[0]?.denuncias_previas === true,
-  );
+  const conDenuncia = res.casos.filter((c) => c.sujetos_activos[0]?.denuncias_previas === true);
   assert.ok(conDenuncia.length >= 2, 'debe haber al menos 2 casos con denuncias');
 });
 
@@ -61,9 +55,7 @@ test('captura medida de protección vigente (perimetral)', () => {
 });
 
 test('registra carátula judicial cuando existe', () => {
-  const conCaratula = res.casos.filter(
-    (c) => c.respuesta_estatal.caratula_judicial != null,
-  );
+  const conCaratula = res.casos.filter((c) => c.respuesta_estatal.caratula_judicial != null);
   assert.ok(conCaratula.length >= 3, 'debe haber al menos 3 casos con carátula');
 });
 

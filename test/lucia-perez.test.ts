@@ -41,9 +41,7 @@ test('registra hijos a cargo (huérfanos por femicidio)', () => {
 });
 
 test('captura denuncias previas cuando existen', () => {
-  const conDenuncia = res.casos.filter(
-    (c) => c.sujetos_activos[0]?.denuncias_previas === true,
-  );
+  const conDenuncia = res.casos.filter((c) => c.sujetos_activos[0]?.denuncias_previas === true);
   assert.ok(conDenuncia.length > 0, 'debe haber al menos un caso con denuncias previas');
 });
 

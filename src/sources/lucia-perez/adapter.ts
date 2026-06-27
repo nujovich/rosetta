@@ -101,11 +101,7 @@ export function adaptLuciaPerez(input: LuciaPerezInput): LuciaPerezOutput {
       ctx,
     );
     const huboCondena =
-      estadoCausa === 'sentencia_firme'
-        ? true
-        : estadoCausa === 'sentencia_no_firme'
-          ? true
-          : null;
+      estadoCausa === 'sentencia_firme' ? true : estadoCausa === 'sentencia_no_firme' ? true : null;
 
     const completo: CasoReportadoCompleto = {
       caso_reportado: {
