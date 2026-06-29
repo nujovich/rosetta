@@ -3,6 +3,8 @@
 //   npm run dev -- list
 //   npm run dev -- run rnfja --dir ./fixtures/rnfja-2024 --anio 2024 --out ./out/rnfja-2024.json
 //   npm run dev -- run-ref snic --dir ./fixtures/snic --out ./out/snic.json
+//   npm run dev -- migrate                       (aplica db/migrations a DATABASE_URL)
+//   npm run dev -- load ./out/rnfja-2024.json    (carga una salida del pipeline)
 //
 // El CLI sólo conoce los registries (per-case y referencia). Agregar una
 // fuente NO toca este archivo.
@@ -149,15 +151,71 @@ function cmdRunRef() {
   console.log('');
 }
 
+// ---- Etapa de carga (load) a Postgres ----
+// El loader vive aparte (src/load/) y se importa de forma perezosa para que el
+// CLI no exija `pg` ni DATABASE_URL salvo que se use `migrate`/`load`.
+
+async function cmdMigrate() {
+  const { createPool } = await import('./load/db.js');
+  const { migrate } = await import('./load/migrate.js');
+  const pool = createPool();
+  try {
+    const r = await migrate(pool);
+    console.log('\n  Migraciones');
+    console.log('  ─────────────────────────────────');
+    if (r.aplicadas.length) for (const f of r.aplicadas) console.log(`  ✓ aplicada  ${f}`);
+    if (r.yaAplicadas.length) for (const f of r.yaAplicadas) console.log(`  · ya estaba ${f}`);
+    if (!r.aplicadas.length) console.log('  (nada nuevo que aplicar)');
+    console.log('');
+  } finally {
+    await pool.end();
+  }
+}
+
+async function cmdLoad() {
+  const file = process.argv[3];
+  if (!file) {
+    console.error('Falta el archivo: load <salida-del-pipeline.json>');
+    process.exit(1);
+  }
+  const payload = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const { createPool } = await import('./load/db.js');
+  const { loadPayload } = await import('./load/load.js');
+  const pool = createPool();
+  try {
+    const s = await loadPayload(pool, payload);
+    console.log(`\n  Carga: ${path.basename(file)} -> Postgres`);
+    console.log('  ─────────────────────────────────');
+    console.log(`  fuente:       ${s.fuente}`);
+    console.log(`  publicación:  ${s.publicacion}`);
+    if (s.caso_reportado) console.log(`  cargados:     ${s.caso_reportado} caso_reportado`);
+    if (s.serie_agregada)
+      console.log(`  cargados:     ${s.serie_agregada} puntos de serie_agregada`);
+    console.log('  ✓ idempotente: recargar la misma publicación actualiza, no duplica.');
+    console.log('');
+  } finally {
+    await pool.end();
+  }
+}
+
 const cmd = process.argv[2];
 if (cmd === 'list') cmdList();
 else if (cmd === 'run') cmdRun();
 else if (cmd === 'run-ref') cmdRunRef();
+else if (cmd === 'migrate') cmdMigrate().catch(fatal);
+else if (cmd === 'load') cmdLoad().catch(fatal);
 else {
   console.log(
     'Comandos:\n' +
       '  list\n' +
       '  run <fuente> --dir <d> --anio <a> [--out <f>]\n' +
-      '  run-ref <fuente-referencia> --dir <d> [--anio <a>] [--out <f>]',
+      '  run-ref <fuente-referencia> --dir <d> [--anio <a>] [--out <f>]\n' +
+      '  migrate                       (aplica db/migrations a DATABASE_URL)\n' +
+      '  load <salida-del-pipeline.json>  (carga per-case o referencia a Postgres)',
   );
+}
+
+function fatal(e: unknown): never {
+  console.error(`\n  ✗ ${(e as Error).message}\n`);
+  process.exit(1);
 }

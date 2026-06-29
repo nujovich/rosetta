@@ -20,7 +20,12 @@ CREATE TABLE serie_agregada (
   valor          NUMERIC,                  -- NULL = punto sin dato
   categoria      TEXT,                     -- categoría penal / sub-serie, si aplica
   creado_en      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  UNIQUE (fuente_id, indicador, jurisdiccion, anio, categoria)
+  -- NULLS NOT DISTINCT: el total país viaja con jurisdiccion = NULL (y muchas
+  -- series sin sub-categoría, categoria = NULL). Esos NULL son una clave real y
+  -- recurrente, no "valores desconocidos distintos". Sin esto, la etapa de load
+  -- duplicaría el punto de total país en cada recarga (el UPSERT no detectaría
+  -- el conflicto). Requiere PostgreSQL 15+ (Supabase/Neon/Postgres 16 lo cumplen).
+  UNIQUE NULLS NOT DISTINCT (fuente_id, indicador, jurisdiccion, anio, categoria)
 );
 
 COMMENT ON TABLE serie_agregada IS

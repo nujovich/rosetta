@@ -34,6 +34,34 @@ npm run dev -- run rnfja --dir ./data/rnfja/2024 --anio 2024 --out ./out/rnfja-2
 npm run dev -- run-ref snic --dir ./data/snic --out ./out/snic.json
 ```
 
+## Cargar a la base (etapa `load`)
+
+El esquema (`db/migrations/`) es **PostgreSQL puro**: no usa nada propio de
+Supabase. Por eso la etapa de carga sólo necesita un `DATABASE_URL` estándar, y
+el mismo loader corre sin cambios contra cualquier Postgres **open source y
+gratis**: un contenedor local (Docker Compose), [Neon](https://neon.tech) o
+[Supabase](https://supabase.com) (su free tier es Postgres; también es
+self-hosteable). Cero lock-in: cambiás el destino apuntando `DATABASE_URL`.
+
+```bash
+cp .env.example .env          # DATABASE_URL ya apunta al Postgres local de compose
+docker compose up -d          # Postgres local (o usá Neon/Supabase: pegá su URL en .env)
+npm run db:migrate            # aplica db/migrations/ (idempotente)
+
+# correr una fuente y cargar su salida (idempotente: recargar actualiza, no duplica)
+npm run dev -- run rnfja --dir ./data/rnfja/2024 --anio 2024 --out ./out/rnfja-2024.json
+npm run db:load -- ./out/rnfja-2024.json
+
+# las fuentes de referencia (serie_agregada) se cargan igual
+npm run dev -- run-ref snic --dir ./data/snic --out ./out/snic.json
+npm run db:load -- ./out/snic.json
+```
+
+El loader hace **UPSERT por la clave natural** de cada tabla del estándar, así
+que es seguro re-correrlo: una nueva publicación de la misma fuente actualiza en
+vez de duplicar. No fusiona ni inventa casos: persiste `caso_reportado` y
+`serie_agregada` tal cual salen del pipeline.
+
 ## Arquitectura
 
 ```
@@ -55,8 +83,12 @@ src/
     aqsnv/                    # monitoreo de medios (completo)
     lucia-perez/             # monitoreo de medios (completo)
     snic/                    # fuente de REFERENCIA (tasas agregadas, no per-case)
+  load/                      # ← etapa de carga a Postgres (migrate + UPSERT idempotente)
+    db.ts                    #    pool desde DATABASE_URL (Postgres puro, sin lock-in)
+    migrate.ts               #    runner de db/migrations/ (idempotente, sin tooling externa)
+    load.ts                  #    persiste caso_reportado / serie_agregada por clave natural
   reconcile/cluster.ts       # etapa caso_unificado (v0 heurística)
-  cli.ts                     # list | run | run-ref (no se toca al agregar fuentes)
+  cli.ts                     # list | run | run-ref | migrate | load (no se toca al agregar fuentes)
 ```
 
 ## Agregar una fuente (el patrón)
@@ -123,7 +155,7 @@ cita de cada fuente original.
 | `snic` — Sistema Nacional de Información Criminal (datos.gob.ar, #2) | estatal_ejecutivo | registro_administrativo | ✅ Completo | 7     |
 
 - ⬜ Cerrar mapeo real RNFJA contra el Libro de Códigos
-- ⬜ Etapa de carga (load) a Postgres/Supabase (incluye `serie_agregada`)
+- ✅ Etapa de carga (load) a Postgres (incluye `serie_agregada`) — UPSERT idempotente, sin lock-in a Supabase
 - ⬜ Explorador público
 
 ### Fuentes conocidas sin adaptador aún

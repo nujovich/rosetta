@@ -1,0 +1,34 @@
+# docker-compose.yml
+# Postgres local para desarrollo, 100% open source y gratis. El esquema de
+# Rosetta es Postgres puro (no usa nada propio de Supabase), así que el mismo
+# DATABASE_URL apunta indistintamente a este contenedor, a Neon o a Supabase.
+#
+#   docker compose up -d        # levanta la base
+#   npm run db:migrate          # aplica db/migrations/
+#   npm run db:load -- ./out/rnfja-2024.json
+#   docker compose down         # apaga (los datos persisten en el volumen)
+#   docker compose down -v      # apaga y borra los datos
+#
+# Coincide con el DATABASE_URL de .env.example:
+#   postgres://rosetta:rosetta@localhost:5432/rosetta
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: rosetta-db
+    environment:
+      POSTGRES_USER: rosetta
+      POSTGRES_PASSWORD: rosetta
+      POSTGRES_DB: rosetta
+    ports:
+      - '5432:5432'
+    volumes:
+      - rosetta-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rosetta -d rosetta']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  rosetta-pgdata:

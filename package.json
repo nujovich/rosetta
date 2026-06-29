@@ -16,6 +16,10 @@
     "fixture:snic": "tsx scripts/make-fixture-snic.ts",
     "dev": "tsx src/cli.ts",
     "smoke": "npm run fixture:rnfja && tsx src/cli.ts run rnfja --dir ./fixtures/rnfja-2024 --anio 2024 --out ./out/rnfja-2024.json",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:migrate": "tsx src/cli.ts migrate",
+    "db:load": "tsx src/cli.ts load",
     "pretest": "npm run fixture",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
@@ -23,10 +27,12 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "pg": "^8.22.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
+    "@types/pg": "^8.20.0",
     "prettier": "^3.3.3",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
